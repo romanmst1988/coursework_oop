@@ -1,6 +1,5 @@
-
+from src.utils import export_to_csv, export_to_json
 from src.vacancy import Vacancy
-from src.utils import export_to_json, export_to_csv
 
 
 def extract_salary(salary_data):
@@ -35,12 +34,15 @@ def user_interaction(hh_api, saver):
     vacancies_data = hh_api.load_vacancies(keyword)  # Получаем список словарей с вакансиями
 
     # Преобразуем данные в объекты Vacancy
-    vacancies = [Vacancy(
-        v.get("name", "Без названия"),
-        v.get("alternate_url", ""),
-        extract_salary(v.get("salary")),  # Передаем числовую зарплату из extract_salary
-        v.get("snippet", {}).get("requirement", "") or v.get("snippet", {}).get("responsibility", "")
-    ) for v in vacancies_data]
+    vacancies = [
+        Vacancy(
+            v.get("name", "Без названия"),
+            v.get("alternate_url", ""),
+            extract_salary(v.get("salary")),  # Передаем числовую зарплату из extract_salary
+            v.get("snippet", {}).get("requirement", "") or v.get("snippet", {}).get("responsibility", ""),
+        )
+        for v in vacancies_data
+    ]
 
     # Сохраняем вакансии в файл (без дублирования)
     saver.add(vacancies)
@@ -55,7 +57,9 @@ def user_interaction(hh_api, saver):
         top_n = len(vacancies)
 
     # Запрос ключевых слов для фильтрации по описанию
-    filter_words_input = input("Введите ключевые слова для фильтрации вакансий по описанию (через пробел, можно пропустить): ").strip()
+    filter_words_input = input(
+        "Введите ключевые слова для фильтрации вакансий по описанию (через пробел, можно пропустить): "
+    ).strip()
     filter_words = filter_words_input.lower().split() if filter_words_input else []
 
     # Фильтрация вакансий по ключевым словам

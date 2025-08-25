@@ -1,7 +1,9 @@
-import json
 import csv
+import json
+
 import pytest
-from src.utils import export_to_json, export_to_csv
+
+from src.utils import export_to_csv, export_to_json
 from src.vacancy import Vacancy
 
 

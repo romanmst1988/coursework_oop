@@ -1,9 +1,9 @@
-
 import json
 import logging
-from pathlib import Path
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from pathlib import Path
+from typing import Any, Dict, List
+
 from src.vacancy import Vacancy
 
 logger = logging.getLogger(__name__)  # создаём логгер для модуля
@@ -40,6 +40,7 @@ class JSONSaver(VacancySaver):
     """
     Реализация VacancySaver, использующая JSON-файл для хранения вакансий.
     """
+
     def __init__(self, filename: str = "vacancies.json"):
         self._filename = Path(filename)
 
@@ -79,7 +80,7 @@ class JSONSaver(VacancySaver):
         Добавление вакансии в файл (дубликаты по url не записываются).
         """
         data = self._load_file()
-        have_urls = [v['url'] for v in data]  # Уже сохранённые URL
+        have_urls = [v["url"] for v in data]  # Уже сохранённые URL
         to_save = [v for v in vacancies if v.url not in have_urls]  # Только новые
 
         for vacancy in to_save:

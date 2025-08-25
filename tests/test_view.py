@@ -1,4 +1,3 @@
-
 from src.view import user_interaction
 
 
@@ -11,13 +10,13 @@ class DummyAPI:
                 "name": "Python Developer",
                 "alternate_url": "http://example.com/1",
                 "salary": {"from": 100000, "to": None},
-                "snippet": {"requirement": "Python, Django"}
+                "snippet": {"requirement": "Python, Django"},
             },
             {
                 "name": "Junior Python Developer",
                 "alternate_url": "http://example.com/2",
                 "salary": {"from": 50000, "to": None},
-                "snippet": {"requirement": "Python"}
+                "snippet": {"requirement": "Python"},
             },
         ]
 
@@ -68,9 +67,11 @@ def test_user_interaction(monkeypatch):
 
 
 def test_user_interaction_empty_keyword(monkeypatch, capsys):
-    inputs = iter([
-        "",  # пустой keyword
-    ])
+    inputs = iter(
+        [
+            "",  # пустой keyword
+        ]
+    )
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
 
     api = DummyAPI()
@@ -83,12 +84,7 @@ def test_user_interaction_empty_keyword(monkeypatch, capsys):
 
 
 def test_user_interaction_invalid_top_n(monkeypatch):
-    inputs = iter([
-        "Python",
-        "abc",
-        "",
-        "нет"
-    ])
+    inputs = iter(["Python", "abc", "", "нет"])
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
 
     api = DummyAPI()
@@ -101,12 +97,7 @@ def test_user_interaction_invalid_top_n(monkeypatch):
 
 
 def test_user_interaction_no_filter_words(monkeypatch):
-    inputs = iter([
-        "Python",
-        "2",
-        "",
-        "нет"
-    ])
+    inputs = iter(["Python", "2", "", "нет"])
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
 
     api = DummyAPI()

@@ -1,9 +1,10 @@
-
-from pathlib import Path
 import json
+from pathlib import Path
+
 import pytest
-from src.vacancy_saver import JSONSaver
+
 from src.vacancy import Vacancy
+from src.vacancy_saver import JSONSaver
 
 
 @pytest.fixture

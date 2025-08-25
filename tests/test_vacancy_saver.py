@@ -1,5 +1,5 @@
-
 import pytest
+
 from src.vacancy_saver import VacancySaver
 
 
@@ -10,7 +10,7 @@ def test_cannot_instantiate_abstract_class():
 
 def test_abstract_methods_signature():
     # Проверяем, что у VacancySaver есть требуемые абстрактные методы
-    methods = ['add', 'get', 'delete']
+    methods = ["add", "get", "delete"]
     for method in methods:
         assert callable(getattr(VacancySaver, method))
 

@@ -1,10 +1,9 @@
-
 class Vacancy:
     """
     Класс для представления вакансии.
     """
 
-    __slots__ = ('title', 'url', 'salary', 'description')  # Оптимизация памяти
+    __slots__ = ("title", "url", "salary", "description")  # Оптимизация памяти
 
     def __init__(self, title: str, url: str, salary, description: str):
         self.title = title
@@ -44,8 +43,10 @@ class Vacancy:
         """
         Строковое представление вакансии для отладки.
         """
-        return (f"Vacancy(title={self.title!r}, url={self.url!r}, "
-                f"salary={self.salary}, description={self.description!r})")  # исправлено с name на title
+        return (
+            f"Vacancy(title={self.title!r}, url={self.url!r}, "
+            f"salary={self.salary}, description={self.description!r})"
+        )  # исправлено с name на title
 
     def __str__(self):
         """
@@ -58,9 +59,4 @@ class Vacancy:
         Преобразует объект Vacancy в словарь (возможность класса самому себя выводить).
         """
 
-        return {
-            "title": self.title,
-            "url": self.url,
-            "salary": self.salary,
-            "description": self.description
-        }
+        return {"title": self.title, "url": self.url, "salary": self.salary, "description": self.description}

@@ -1,4 +1,5 @@
 import pytest
+
 from src.parser import Parser
 
 

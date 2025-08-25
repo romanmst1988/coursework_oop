@@ -1,18 +1,12 @@
-
-import json
 import csv
+import json
 
 
 def export_to_json(vacancies, filename="vacancies_export.json"):
     """
     Экспорт списка вакансий в JSON-файл.
     """
-    data = [{
-        "title": v.title,
-        "url": v.url,
-        "salary": v.salary,
-        "description": v.description
-    } for v in vacancies]
+    data = [{"title": v.title, "url": v.url, "salary": v.salary, "description": v.description} for v in vacancies]
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
