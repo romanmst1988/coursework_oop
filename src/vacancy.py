@@ -1,62 +1,75 @@
+import re
+from typing import Any, Dict, List
+
+
 class Vacancy:
-    """
-    Класс для представления вакансии.
-    """
+    """Класс для представления вакансии."""
 
-    __slots__ = ("title", "url", "salary", "description")  # Оптимизация памяти
+    __slots__ = ("title", "url", "salary", "description", "requirements")
 
-    def __init__(self, title: str, url: str, salary, description: str):
+    def __init__(
+        self, title: str, url: str, salary: str, description: str, requirements: str
+    ):
         self.title = title
         self.url = url
         self.salary = self._validate_salary(salary)
         self.description = description
+        self.requirements = requirements
+
+    def _validate_salary(self, salary: str) -> str:
+        """Валидация зарплаты."""
+        if not salary or salary.lower() == "не указана":
+            return "Зарплата не указана"
+        return salary
+
+    def __lt__(self, other: "Vacancy") -> bool:
+        return self._get_salary_value() < other._get_salary_value()
+
+    def __le__(self, other: "Vacancy") -> bool:
+        return self._get_salary_value() <= other._get_salary_value()
+
+    def __gt__(self, other: "Vacancy") -> bool:
+        return self._get_salary_value() > other._get_salary_value()
+
+    def __ge__(self, other: "Vacancy") -> bool:
+        return self._get_salary_value() >= other._get_salary_value()
+
+    def _get_salary_value(self) -> int:
+        """Получение числового значения зарплаты для сравнения."""
+        if self.salary == "Зарплата не указана":
+            return 0
+
+        # Используем регулярное выражение для поиска всех чисел в строке
+        numbers = re.findall(r"\d+", self.salary)
+        if numbers:
+            return max(map(int, numbers))
+        return 0
 
     @staticmethod
-    def _validate_salary(salary):
-        """
-        Валидация зарплаты. Если зарплата не указана, возвращаем 0.
-        """
-        if salary is None or salary == "" or (isinstance(salary, str) and salary.lower() == "зарплата не указана"):
-            return 0
-        try:
-            return int(salary)
-        except (ValueError, TypeError):
-            return 0
+    def cast_to_object_list(vacancies_data: List[Dict[str, Any]]) -> List["Vacancy"]:
+        """Преобразование JSON-данных в список объектов Vacancy."""
+        vacancies = []
+        for item in vacancies_data:
+            title = item.get("name", "")
+            url = item.get("alternate_url", "")
+            salary = item.get("salary")
+            if salary:
+                from_salary = salary.get("from", "")
+                to_salary = salary.get("to", "")
+                currency = salary.get("currency", "")
 
-    def __lt__(self, other):
-        """
-        Сравнение вакансий по зарплате (меньше).
-        """
-        if not isinstance(other, Vacancy):
-            return NotImplemented
-        return self.salary < other.salary
+                if from_salary and to_salary:
+                    salary_str = f"{from_salary}-{to_salary} {currency}"
+                elif from_salary:
+                    salary_str = f"{from_salary} {currency}"
+                elif to_salary:
+                    salary_str = f"{to_salary} {currency}"
+                else:
+                    salary_str = "Зарплата не указана"
+            else:
+                salary_str = "Зарплата не указана"
 
-    def __eq__(self, other):
-        """
-        Проверка равенства вакансий по зарплате и названию (title).
-        """
-        if not isinstance(other, Vacancy):
-            return NotImplemented
-        return self.salary == other.salary and self.title == other.title  # исправлено с name на title
-
-    def __repr__(self) -> str:
-        """
-        Строковое представление вакансии для отладки.
-        """
-        return (
-            f"Vacancy(title={self.title!r}, url={self.url!r}, "
-            f"salary={self.salary}, description={self.description!r})"
-        )  # исправлено с name на title
-
-    def __str__(self):
-        """
-        Представление вакансии (учим вакансию саму себя выводить).
-        """
-        return f"Название: {self.title}\nСсылка: {self.url}\nЗарплата: {self.salary}\nОписание: {self.description}"
-
-    def to_dict(self):
-        """
-        Преобразует объект Vacancy в словарь (возможность класса самому себя выводить).
-        """
-
-        return {"title": self.title, "url": self.url, "salary": self.salary, "description": self.description}
+            description = item.get("snippet", {}).get("responsibility", "")
+            requirements = item.get("snippet", {}).get("requirement", "")
+            vacancies.append(Vacancy(title, url, salary_str, description, requirements))
+        return vacancies

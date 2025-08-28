@@ -1,136 +1,88 @@
-import json
-from pathlib import Path
-
-import pytest
-
+import unittest
 from src.vacancy import Vacancy
-from src.vacancy_saver import JSONSaver
 
 
-@pytest.fixture
-def temp_filename(tmp_path: Path) -> Path:
-    """
-    Даём каждому тесту свой JSON-файл.
-    """
-    return tmp_path / "vacancies.json"
+class TestVacancy(unittest.TestCase):
+    def test_vacancy_creation(self):
+        vacancy = Vacancy("Python Developer", "https://hh.ru/vacancy/123", "100000-150000 руб.", "Описание",
+                          "Опыт работы")
+        self.assertEqual(vacancy.title, "Python Developer")
+        self.assertEqual(vacancy.url, "https://hh.ru/vacancy/123")
+        self.assertEqual(vacancy.salary, "100000-150000 руб.")
+        self.assertEqual(vacancy.description, "Описание")
+        self.assertEqual(vacancy.requirements, "Опыт работы")
+
+    def test_salary_validation_unspecified(self):
+        vacancy = Vacancy("Test", "url", "", "desc", "req")
+        self.assertEqual(vacancy.salary, "Зарплата не указана")
+
+    def test_salary_validation_not_specified(self):
+        vacancy = Vacancy("Test", "url", "не указана", "desc", "req")
+        self.assertEqual(vacancy.salary, "Зарплата не указана")
+
+    def test_salary_comparison(self):
+        v1 = Vacancy("Title1", "url1", "100000", "desc1", "req1")
+        v2 = Vacancy("Title2", "url2", "150000", "desc2", "req2")
+        self.assertTrue(v1 < v2)
+        self.assertTrue(v2 > v1)
+        self.assertTrue(v1 <= v2)
+        self.assertTrue(v2 >= v1)
+
+    def test_salary_comparison_with_unspecified(self):
+        v1 = Vacancy("Title1", "url1", "не указана", "desc1", "req1")
+        v2 = Vacancy("Title2", "url2", "100000", "desc2", "req2")
+        self.assertTrue(v1 < v2)
+        self.assertTrue(v2 > v1)
+
+    def test_get_salary_value(self):
+        v1 = Vacancy("Title1", "url1", "100000-150000 руб.", "desc1", "req1")
+        self.assertEqual(v1._get_salary_value(), 150000)
+
+        v2 = Vacancy("Title2", "url2", "не указана", "desc2", "req2")
+        self.assertEqual(v2._get_salary_value(), 0)
+
+        v3 = Vacancy("Title3", "url3", "80000 руб.", "desc3", "req3")
+        self.assertEqual(v3._get_salary_value(), 80000)
+
+    def test_cast_to_object_list(self):
+        sample_data = [
+            {
+                "name": "Python Developer",
+                "alternate_url": "https://hh.ru/vacancy/123",
+                "salary": {
+                    "from": 100000,
+                    "to": 150000,
+                    "currency": "RUR"
+                },
+                "snippet": {
+                    "responsibility": "Разработка",
+                    "requirement": "Опыт работы"
+                }
+            },
+            {
+                "name": "Data Scientist",
+                "alternate_url": "https://hh.ru/vacancy/456",
+                "salary": None,
+                "snippet": {
+                    "responsibility": "Анализ данных",
+                    "requirement": "Знание Python"
+                }
+            }
+        ]
+
+        vacancies = Vacancy.cast_to_object_list(sample_data)
+        self.assertEqual(len(vacancies), 2)
+
+        self.assertEqual(vacancies[0].title, "Python Developer")
+        self.assertEqual(vacancies[0].salary, "100000-150000 RUR")
+        self.assertEqual(vacancies[0].description, "Разработка")
+        self.assertEqual(vacancies[0].requirements, "Опыт работы")
+
+        self.assertEqual(vacancies[1].title, "Data Scientist")
+        self.assertEqual(vacancies[1].salary, "Зарплата не указана")
+        self.assertEqual(vacancies[1].description, "Анализ данных")
+        self.assertEqual(vacancies[1].requirements, "Знание Python")
 
 
-def make_v(title: str, url: str, salary: int, desc: str) -> Vacancy:
-    """Компактная фабрика Vacancy ."""
-    return Vacancy(title, url, salary, desc)
-
-
-def test_add_single_in_list_and_get_all(temp_filename):
-    saver = JSONSaver(str(temp_filename))
-    v = make_v("Python Dev", "https://hh.ru/vacancy/1", 100000, "Desc")
-
-    # add принимает СПИСОК передаём список из одного элемента
-    saver.add([v])
-
-    # Пустые критерии и надо вернуть все записи
-    got = saver.get({})
-    assert len(got) == 1
-    assert got[0].title == "Python Dev"
-    assert got[0].url == "https://hh.ru/vacancy/1"
-    assert got[0].salary == 100000
-    assert got[0].description == "Desc"
-
-
-def test_add_duplicates_skips_by_url(temp_filename):
-    saver = JSONSaver(str(temp_filename))
-    v = make_v("Python Dev", "https://hh.ru/vacancy/1", 100000, "Desc")
-
-    saver.add([v])
-    saver.add([v])  # дубль по url — не должен добавиться второй раз
-
-    got = saver.get({})
-    assert len(got) == 1
-
-
-def test_get_by_single_criteria_title(temp_filename):
-    saver = JSONSaver(str(temp_filename))
-    v1 = make_v("Python Dev", "https://hh.ru/vacancy/1", 100000, "D1")
-    v2 = make_v("Java Dev", "https://hh.ru/vacancy/2", 120000, "D2")
-    saver.add([v1, v2])
-
-    got = saver.get({"title": "Python Dev"})
-    assert len(got) == 1
-    assert got[0].url == "https://hh.ru/vacancy/1"
-
-
-def test_get_by_multiple_criteria(temp_filename):
-    saver = JSONSaver(str(temp_filename))
-    v1 = make_v("Python Dev", "https://hh.ru/vacancy/1", 100000, "D1")
-    v2 = make_v("Python Dev", "https://hh.ru/vacancy/2", 150000, "D2")
-    saver.add([v1, v2])
-
-    got = saver.get({"title": "Python Dev", "salary": 100000})
-    assert len(got) == 1
-    assert got[0].url == "https://hh.ru/vacancy/1"
-
-
-def test_get_with_empty_criteria_returns_all(temp_filename):
-    saver = JSONSaver(str(temp_filename))
-    saver.add([make_v("A", "u1", 1, "d1"), make_v("B", "u2", 2, "d2")])
-
-    got = saver.get({})
-    assert len(got) == 2
-
-
-def test_delete_existing_vacancy(temp_filename):
-    saver = JSONSaver(str(temp_filename))
-    v1 = make_v("Python Dev", "https://hh.ru/vacancy/1", 100000, "D1")
-    v2 = make_v("Java Dev", "https://hh.ru/vacancy/2", 120000, "D2")
-    saver.add([v1, v2])
-
-    saver.delete(v1)
-
-    got = saver.get({})
-    assert len(got) == 1
-    assert got[0].url == "https://hh.ru/vacancy/2"
-
-
-def test_delete_nonexistent_vacancy_no_change(temp_filename):
-    saver = JSONSaver(str(temp_filename))
-    v1 = make_v("Python Dev", "https://hh.ru/vacancy/1", 100000, "D1")
-    v2 = make_v("Java Dev", "https://hh.ru/vacancy/2", 120000, "D2")
-    saver.add([v1, v2])
-
-    ghost = make_v("Go Dev", "https://hh.ru/vacancy/999", 200000, "Ghost")
-    saver.delete(ghost)  # в файле его нет — должно пройти без ошибок и без изменений
-
-    got = saver.get({})
-    assert len(got) == 2
-    assert {g.url for g in got} == {"https://hh.ru/vacancy/1", "https://hh.ru/vacancy/2"}
-
-
-def test_get_when_file_missing_returns_empty(temp_filename):
-    """
-    Файл ещё не создан _load_file() должен вернуть [] без исключений.
-    """
-    saver = JSONSaver(str(temp_filename))
-    got = saver.get({})
-    assert got == []
-
-
-def test_get_when_file_has_invalid_json_returns_empty(temp_filename):
-    """
-    В файле некорректный JSON — _load_file() ловит JSONDecodeError и возвращает [].
-    """
-    # Пишем битый JSON
-    temp_filename.write_text("{not valid json", encoding="utf-8")
-
-    saver = JSONSaver(str(temp_filename))
-    got = saver.get({})
-    assert got == []
-
-
-def test_get_when_file_has_non_list_returns_empty(temp_filename):
-    """
-    В файле корректный JSON, но не список (например, словарь) — функция должна вернуть [].
-    """
-    temp_filename.write_text(json.dumps({"not": "a list"}), encoding="utf-8")
-
-    saver = JSONSaver(str(temp_filename))
-    got = saver.get({})
-    assert got == []
+if __name__ == '__main__':
+    unittest.main()

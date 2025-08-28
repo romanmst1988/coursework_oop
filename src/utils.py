@@ -1,25 +1,52 @@
-import csv
-import json
+from typing import List
+
+from src.vacancy import Vacancy
 
 
-def export_to_json(vacancies, filename="vacancies_export.json"):
-    """
-    Экспорт списка вакансий в JSON-файл.
-    """
-    data = [{"title": v.title, "url": v.url, "salary": v.salary, "description": v.description} for v in vacancies]
+def filter_vacancies(
+    vacancies: List[Vacancy], filter_words: List[str]
+) -> List[Vacancy]:
+    """Фильтрация вакансий по ключевым словам."""
+    if not filter_words:
+        return vacancies
+    return [
+        v
+        for v in vacancies
+        if any(word.lower() in v.description.lower() for word in filter_words)
+    ]
 
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-    print(f"Вакансии успешно экспортированы в {filename}")
+
+def get_vacancies_by_salary(
+    vacancies: List[Vacancy], salary_range: str
+) -> List[Vacancy]:
+    """Фильтрация вакансий по диапазону зарплат."""
+    if not salary_range:
+        return vacancies
+    try:
+        min_salary, max_salary = map(int, salary_range.split("-"))
+        return [
+            v for v in vacancies if min_salary <= v._get_salary_value() <= max_salary
+        ]
+    except ValueError:
+        return vacancies
 
 
-def export_to_csv(vacancies, filename="vacancies_export.csv"):
-    """
-    Экспорт списка вакансий в CSV-файл.
-    """
-    with open(filename, "w", encoding="utf-8", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["Title", "URL", "Salary", "Description"])
-        for v in vacancies:
-            writer.writerow([v.title, v.url, v.salary, v.description])
-    print(f"Вакансии успешно экспортированы в {filename}")
+def sort_vacancies(vacancies: List[Vacancy]) -> List[Vacancy]:
+    """Сортировка вакансий по зарплате."""
+    return sorted(vacancies, reverse=True)
+
+
+def get_top_vacancies(vacancies: List[Vacancy], top_n: int) -> List[Vacancy]:
+    """Получение топ N вакансий."""
+    return vacancies[:top_n]
+
+
+def print_vacancies(vacancies: List[Vacancy]) -> None:
+    """Вывод вакансий в консоль."""
+    for vacancy in vacancies:
+        print(f"Название: {vacancy.title}")
+        print(f"Ссылка: {vacancy.url}")
+        print(f"Зарплата: {vacancy.salary}")
+        print(f"Описание: {vacancy.description}")
+        print(f"Требования: {vacancy.requirements}")
+        print()
