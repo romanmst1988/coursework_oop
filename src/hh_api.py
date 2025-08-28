@@ -1,6 +1,8 @@
-from src.abstract_api import AbstractAPI
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 import requests
+
+from src.abstract_api import AbstractAPI
 
 
 class HeadHunterAPI(AbstractAPI):

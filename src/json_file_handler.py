@@ -1,5 +1,6 @@
 import json
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from src.abstract_file_handler import AbstractFileHandler
 from src.vacancy import Vacancy
 

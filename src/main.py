@@ -1,13 +1,7 @@
 from src.hh_api import HeadHunterAPI
-from src.vacancy import Vacancy
 from src.json_file_handler import JSONFileHandler
-from src.utils import (
-    filter_vacancies,
-    get_vacancies_by_salary,
-    sort_vacancies,
-    get_top_vacancies,
-    print_vacancies,
-)
+from src.utils import filter_vacancies, get_top_vacancies, get_vacancies_by_salary, print_vacancies, sort_vacancies
+from src.vacancy import Vacancy
 
 
 def user_interaction() -> None:
